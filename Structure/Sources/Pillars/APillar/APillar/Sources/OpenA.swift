@@ -11,7 +11,7 @@ import PillarDependencyBase
 
 class OpenA: OpenAProtocol {
 
-    func appName() -> String {
-        return RootContainer.infra.buildInfo.appName()
+    func pillarName() -> String {
+        return "A Pillar"
     }
 }

@@ -9,5 +9,5 @@ import Foundation
 
 public protocol OpenAProtocol {
 
-    func appName() -> String
+    func pillarName() -> String
 }
