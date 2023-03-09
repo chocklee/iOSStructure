@@ -1,0 +1,48 @@
+PODS:
+  - APillar (1.0.0):
+    - PillarDependencyBase
+  - BPillar (1.0.0):
+    - PillarDependencyBase
+  - Infra (1.0.0)
+  - InfraUI (1.0.0):
+    - Infra
+  - PillarDependencyBase (1.0.0):
+    - Infra
+    - InfraUI
+  - SnapKit (5.6.0)
+
+DEPENDENCIES:
+  - APillar (from `Sources/Pillars/APillar/APillar/APillar.podspec`)
+  - BPillar (from `Sources/Pillars/BPillar/BPillar/BPillar.podspec`)
+  - Infra (from `Sources/Containers/Infra/Infra/Infra.podspec`)
+  - InfraUI (from `Sources/Containers/InfraUI/InfraUI/InfraUI.podspec`)
+  - PillarDependencyBase (from `Sources/API/PillarDependencyBase/PillarDependencyBase/PillarDependencyBase.podspec`)
+  - SnapKit
+
+SPEC REPOS:
+  trunk:
+    - SnapKit
+
+EXTERNAL SOURCES:
+  APillar:
+    :path: Sources/Pillars/APillar/APillar/APillar.podspec
+  BPillar:
+    :path: Sources/Pillars/BPillar/BPillar/BPillar.podspec
+  Infra:
+    :path: Sources/Containers/Infra/Infra/Infra.podspec
+  InfraUI:
+    :path: Sources/Containers/InfraUI/InfraUI/InfraUI.podspec
+  PillarDependencyBase:
+    :path: Sources/API/PillarDependencyBase/PillarDependencyBase/PillarDependencyBase.podspec
+
+SPEC CHECKSUMS:
+  APillar: cbb9247173e53cf430ee56a1a1cbfd2cb1208e40
+  BPillar: 2ace35fe59f2b79576c72310d1dd0d94726d8ae0
+  Infra: d5d5799e5098a1a9ed05515c6ad00ebfda603dc0
+  InfraUI: 9d4177ccfa634015558b96941b775880b01f3e3a
+  PillarDependencyBase: cd0272bf734a2b3a6b0debbcf49c71c7dae78842
+  SnapKit: e01d52ebb8ddbc333eefe2132acf85c8227d9c25
+
+PODFILE CHECKSUM: ba248fc720e0a6f1df36af90390cfa0794b29e21
+
+COCOAPODS: 1.11.3

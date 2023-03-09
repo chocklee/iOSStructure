@@ -1,0 +1,262 @@
+#!/export/apps/python/3.6/bin/python3
+
+import enum
+import os
+import string
+import sys
+import getopt
+import pathlib
+from pod_template import TemplateTarget, TemplateResourceTarget
+
+from enum import Enum
+class Mode(Enum):
+    NOP = 0
+    CREATE = 1
+    GRAPHQL = 2
+    RESOURCE = 3
+    A11YID = 4
+    LIX = 5
+    APPROUTER = 6
+
+targetName = None
+moduleName = None
+rootPath = None
+pillarPath = None
+
+manual = """Use ./scripts/pod_management -t <target> -m <module> --pillar[default] --nolix/lix[optional] --noa11yid/a11yid[optional
+] --noresource/resource[optional] --nographql/graphql[optional] --noapprouter/approuter[optional] to create module and target or to add auto-generated functions to exisiting module.
+
+when creating module:
+\tIf you don't need lix file, add '--nolix' option;
+\tif you don't need a11yID file, add '--noa11yid';
+\tif you don't need resource target, add '--noresource';
+\tif you don't need graphql target, add '--nographql';
+\tif you don't need approuter target, add '--noapprouter';
+
+when modifying existing module and target:
+\tIf you need to add lix file to exisiting target, add '--lix' option;
+\tif you need to add a11yID file to exisiting target, add '--a11yid';
+\tif you need to add resource target to exisiting target, add '--resource';
+\tif you need to add graphql target to exisiting target, add '--graphql';
+\tif you need to add approuter target to exisiting target, add '--approuter';
+
+
+Detail and examples: https://docs.google.com/document/d/1kIigIFIk7jifx1tZPV7Kym1HLAQYqpFVelFNjLheSEA/edit#heading=h.lof52cneg3s
+"""
+
+def main(argv):
+    mode = Mode(0)
+    needLix = True
+    needA11yID = True
+    needResource = True
+    needGraphQL = True
+    needAppRouter = True
+    global targetName
+    global moduleName
+    global rootPath
+    global pillarPath
+    try:
+        opts, args = getopt.getopt(argv,"ht:m:",["target=","module=", "pillar", "graphql", "nographql", "resource", "noresource", "a11yid", "noa11yid", "lix", "nolix", "approuter", "noapprouter"])
+    except getopt.GetoptError:
+        print(manual)
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print(manual)
+            sys.exit(3)
+        elif opt in ("-t", "--target"):
+            targetName = arg
+        elif opt in ("-m", "--module"):
+            moduleName = arg
+        elif opt == "--nolix":
+            needLix = False
+        elif opt == "--noa11yid":
+            needA11yID = False
+        elif opt == "--noresource":
+            needResource = False
+        elif opt == "--nographql":
+            needGraphQL = False
+        elif opt == "--noapprouter":
+            needAppRouter = False
+        elif opt == "--pillar":
+            mode = Mode.CREATE
+        elif opt == "--graphql":
+            mode = Mode.GRAPHQL
+        elif opt == "--lix":
+            mode = mode.LIX
+        elif opt == "--graphql":
+            mode = mode.GRAPHQL
+        elif opt == "--a11yid":
+            mode = mode.A11YID
+        elif opt == "--approuter":
+            mode = mode.APPROUTER
+
+    rootPath = pathlib.Path(os.getcwd())
+    pillarPath = rootPath.joinpath("Sources/Pillars/")
+
+    if mode == Mode.NOP:
+        mode = Mode.CREATE
+
+    if mode == mode.CREATE:
+        createModule(needLix, needA11yID, needResource, needGraphQL, needAppRouter)
+    elif mode == mode.GRAPHQL:
+        createGraphQL()
+    elif mode == mode.A11YID:
+        createA11yID()
+    elif mode == mode.LIX:
+        createLix()
+    elif mode == mode.RESOURCE:
+        createResource()
+    elif mode == mode.APPROUTER:
+        createAppRouter()
+
+def createModule(needLix: bool,
+                 needA11yID: bool,
+                 needResource: bool,
+                 needGraphQL: bool,
+                 needAppRouter: bool):
+    global targetName
+    global moduleName
+    global rootPath
+    global pillarPath
+
+    if moduleName is None:
+            print(manual)
+            return
+
+    if moduleName in ["Infra", "InfraAPI"]:
+        print("Infra is frozen, you should not add more podspec to this module, please contact to #karpos-ios")
+        return
+
+    modulePath = pillarPath.joinpath(moduleName)
+    if modulePath.exists():
+        print(f"{modulePath} exists, try creating target")
+        if targetName is not None:
+            tartgetPath = modulePath.joinpath(targetName)
+            if tartgetPath.exists():
+                print("target exists, pls re-check")
+                return
+            else:
+                tartgetPath.mkdir()
+                TemplateTarget(modulePath, targetName, rootPath).createCommonContent()
+        else:
+            print("Specify a target name if you want to create a target")
+            return
+    else:
+        print("module doesn't exists, try to create module")
+        modulePath.mkdir()
+        targetName = moduleName if targetName is None else targetName
+        print(moduleName, end=" ")
+        tartgetPath = modulePath.joinpath(targetName)
+        tartgetPath.mkdir()
+        TemplateTarget(modulePath, targetName, rootPath).createCommonContent()
+        print("module created, target created")
+
+    if needResource:
+        createResource()
+    if needGraphQL:
+        createGraphQL()
+    if needLix:
+        createLix()
+    if needA11yID:
+        createA11yID()
+    if needAppRouter:
+        createAppRouter()
+
+    print(f"ALL tasks done for {moduleName}, please run ./gradlew podInstall to generate new pods, please git add Karpos.xcodeproj changes too after podIntall \n IMPORTANT, if you have graphql target, create at least one grpahql file to generate source code for graphql target, or you will fail to build in bazel")
+
+def createGraphQL():
+    global targetName
+    global moduleName
+    global rootPath
+    global pillarPath
+    modulePath = pillarPath.joinpath(moduleName)
+    graphqlTargetName = f"{moduleName}GraphQL"
+    tartgetPath = modulePath.joinpath(graphqlTargetName)
+    if not tartgetPath.exists():
+        print("Creating graphql target...")
+        tartgetPath.mkdir()
+        TemplateTarget(modulePath, graphqlTargetName, rootPath, True).createCommonContent()
+    else:
+        print("graphql target exists, stop creating")
+        return
+
+    # now we need to add a dependency to graphql target in "module" target
+    moduleTargetPath = modulePath.joinpath(moduleName)
+    moduleTargetSpecPath = moduleTargetPath.joinpath(f"{moduleName}.podspec")
+    if not moduleTargetSpecPath.exists():
+        print(f"{moduleName}.podspec doesn't exist, drop adding graphql target dependency to {moduleName}")
+    else:
+        lines = []
+        insertIndex = None
+        with moduleTargetSpecPath.open('r') as spec:
+            lines = spec.readlines()
+            for i,line in enumerate(lines):
+                text = line.lstrip()
+                if text.startswith("s.dependency"):
+                    insertIndex = i
+                    break
+        if insertIndex is None:
+            print(f"Cannot find insert index in podspec, drop adding graphql target dependency to {moduleName}")
+            return
+        lines.insert(insertIndex, f"  s.dependency \'{graphqlTargetName}\'\n")
+        with moduleTargetSpecPath.open('w') as spec:
+            spec.writelines(lines)
+            print(f"Adding graphql target dependency to {moduleName} is done")
+    # now we add config in graphql.config.yaml
+    graphqlConfigPath = rootPath.joinpath("GraphQL").joinpath("graphql.config.yaml")
+    template = f"""
+  {moduleName}:
+    documents:
+     - com/linkedin/{moduleName}/**.graphql\n"""
+    with graphqlConfigPath.open("a") as config:
+        config.write(template)
+    moduleGraphqlFolderPath = rootPath.joinpath(f"GraphQL/src/main/graphql/com/linkedin/{moduleName}")
+    if moduleGraphqlFolderPath.exists():
+        print(f"{moduleName} exists in graphql folder, stop creating")
+    else:
+        moduleGraphqlFolderPath.mkdir()
+        print(f"{moduleName} graphql folder created and configed")
+
+def createResource():
+    global targetName
+    global moduleName
+    global rootPath
+    global pillarPath
+    modulePath = pillarPath.joinpath(moduleName)
+    resourceTargetName = f"{moduleName}Resources"
+    tartgetPath = modulePath.joinpath(resourceTargetName)
+    if not tartgetPath.exists():
+        print("Creating resource target...")
+        tartgetPath.mkdir()
+        TemplateResourceTarget(moduleName, resourceTargetName, modulePath).fillContent()
+    else:
+        print("Resource target exists, stop execution")
+
+def createA11yID():
+    global targetName
+    global moduleName
+    global rootPath
+    global pillarPath
+    modulePath = pillarPath.joinpath(moduleName)
+    TemplateTarget(modulePath, targetName, rootPath).fillA11yID()
+
+def createLix():
+    global targetName
+    global moduleName
+    global rootPath
+    global pillarPath
+    modulePath = pillarPath.joinpath(moduleName)
+    TemplateTarget(modulePath, targetName, rootPath).fillLix()
+
+def createAppRouter():
+    global targetName
+    global moduleName
+    global rootPath
+    global pillarPath
+    modulePath = pillarPath.joinpath(moduleName)
+    TemplateTarget(modulePath, targetName, rootPath).fillAppRouter()
+
+
+if __name__ == "__main__":
+   main(sys.argv[1:])

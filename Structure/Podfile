@@ -1,0 +1,41 @@
+APP_DEPENDENCIES = [
+   'PillarDependencyBase'
+]
+
+SHARED_DEPENDENCIES = [
+  'SnapKit'
+].freeze
+
+Dir.glob("Sources/**/*") do |folder_name|
+  module_name = folder_name.split('/').last
+  APP_DEPENDENCIES.append(module_name)
+end
+
+# -----------------------------------------------------------------------------
+# The section below is the actual Podfile
+# -----------------------------------------------------------------------------
+
+workspace 'Structure'
+project 'Structure'
+platform :ios, '13.0'
+
+require './Scripts/post_integrate'
+
+target 'Structure' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  use_frameworks!
+
+  # Pods for Structure
+  SHARED_DEPENDENCIES.each { |shared_dependency| pod *shared_dependency }
+
+  APP_DEPENDENCIES.each do |folder_name|
+    Dir.glob("Sources/**/#{folder_name}/**/*.podspec") do |podspec_path|
+      pod_name = File.basename(podspec_path, '.podspec')
+      pod pod_name, path: "#{podspec_path}", project_name: "#{folder_name}"
+    end
+  end
+end
+
+post_integrate do |installer|
+  postIntergrate(installer)
+end
