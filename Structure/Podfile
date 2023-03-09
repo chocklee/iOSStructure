@@ -20,6 +20,9 @@ project 'Structure'
 platform :ios, '13.0'
 
 require './Scripts/post_integrate'
+require './Scripts/post_install'
+
+install! 'cocoapods', :generate_multiple_pod_projects => true
 
 target 'Structure' do
   # Comment the next line if you don't want to use dynamic frameworks
