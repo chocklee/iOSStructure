@@ -1,0 +1,3 @@
+// This file is aimed to reserve the  ’Sources‘ group in the pod project of Xcode.
+// It should be located at the root directory of pod project(Same layer as the *.podspec file).
+// Please do not remove it manually. It will be auto-removed from the pod project in Xcode at the phase of 'post_intergrate'.
