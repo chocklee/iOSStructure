@@ -1,12 +1,8 @@
-# -----------------------------------------------------------------------------
-# The section below is the actual Podfile
-# -----------------------------------------------------------------------------
-
 workspace 'Structure'
 project 'Structure'
 platform :ios, '13.0'
 
-require './scripts/dependencies'
+require './Scripts/dependencies'
 require './Scripts/post_integrate'
 
 install! 'cocoapods', :generate_multiple_pod_projects => true

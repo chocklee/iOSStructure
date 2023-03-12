@@ -7,9 +7,7 @@
 
 import Foundation
 
-public protocol PillarInterface: AnyObject {
-
-}
+public protocol PillarInterface: AnyObject {}
 
 public struct PillarContainer {
 

@@ -9,6 +9,7 @@ import Foundation
 import Infra
 
 extension RootContainer {
+
     private static var infraUIKey: UInt8 = 0
 
     public static var infraUI: InfraUIContainerProtocol {
